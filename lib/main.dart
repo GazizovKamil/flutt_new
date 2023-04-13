@@ -1,10 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_application_2/home.dart';
-import 'package:flutter_application_2/drawer.dart';
-import 'auth.dart';
+import 'package:flutter_application_2/servises/servises.dart';
+import 'package:provider/provider.dart';
+import 'landing.dart';
 
 void main() async {
   // DBConnection().connectDB();
@@ -19,14 +18,19 @@ class MyThemeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      // home: AuthPage(),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const AuthPage(),
-        '/home': (context) => new HomePage(),
-      },
+     return StreamProvider.value(
+      value: DBConnection().currentUser,
+      initialData: null,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        // home: AuthPage(),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => LandingPage(),
+          '/home': (context) => HomePage(),
+          // '/test':(context) => const TestWidget(),
+        },
+      ),
     );
   }
 }

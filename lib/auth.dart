@@ -1,7 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_application_2/home.dart';
 import 'package:flutter_application_2/servises/model.dart';
 import 'package:flutter_application_2/servises/servises.dart';
@@ -35,7 +33,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool sign = false;
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
-  DBConnection dbConnection = new DBConnection();
+  DBConnection dbConnection = DBConnection();
 
   @override
   void dispose() {
@@ -46,7 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black12,
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     Padding(padding: EdgeInsets.only(top: 120)),
                 const Text("Kamil app  ", style: TextStyle(color: Colors.orange, fontSize: 30)),
                 Image.asset("assets/clown.png"),],),
-            SizedBox(
+               SizedBox(
                 height: 100, width: MediaQuery.of(context).size.width * 0.8,
                 child: TextField(
                   controller: email,
@@ -75,7 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     borderSide: const BorderSide(color: Colors.orange)),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(color: Colors.orange)
+                      borderSide: const BorderSide(color: Colors.orange),
                     )
                     ),
                   cursorColor: Colors.orange,
@@ -131,29 +129,32 @@ class _MyHomePageState extends State<MyHomePage> {
                       if(user != null){
                         Navigator.push(context, CupertinoPageRoute(builder: (context)=>  HomePage()));
                       }
+                      else{}
                     }
                     else{
                       UserModel? user = await dbConnection.signUp(email.text, password.text);
+                      if(user!=null){
+                        Navigator.push(context, CupertinoPageRoute(builder: (context)=>  HomePage()));
+                      }
+                      else{
+
+                      }
                     }
                   },
-                  child: sign? const Text("Sign in"): const Text("Sign up"),
+                  child: sign? const Text("Sign up"): const Text("Sign in"),
                 ),
               ),
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.02,
               ),
-              InkWell(
-                onTap:(){
-                  setState(() {
-                    sign = !sign;
-                  });
-                },
-
-                child: const Text(
-                  "Sign Up?",
-                  style: TextStyle(color: Colors.black54),
-                ),
-              ),
+              // InkWell(
+              //   onTap:(){
+              //     setState(() {
+              //       sign = !sign;
+              //     });
+              //   },
+              //   child: sign? const Text("Sign in?",style: TextStyle(color: Colors.amber),): const Text("Sign up?",style: TextStyle(color: Colors.amber),),
+              // ),
               Padding(padding: EdgeInsets.only(top: 10)),
               InkWell(
                 onTap: (){
@@ -161,10 +162,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     sign = !sign;
                   });
                 },
-                child: Text(
-                    "Sign In?", 
-                  style: TextStyle(color: Color.fromARGB(170, 255, 255, 255), fontFamily: "IMFellGreatPrimerSC-Regular", fontSize: 14),
-                  ),
+                child: sign? const Text("Sign in?",style: TextStyle(color: Colors.amber),): const Text("Sign up?",style: TextStyle(color: Colors.amber),),
               ),
               ],
             ),

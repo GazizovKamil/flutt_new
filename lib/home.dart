@@ -1,10 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_application_2/drawer.dart';
 import 'package:flutter_application_2/pr3.dart';
 import 'calendar.dart';
+import 'db.dart';
 import 'deal.dart';
-import 'drawer.dart';
 
 class HomePage extends StatefulWidget{
   @override
@@ -18,7 +20,11 @@ class StateHomePage extends State<HomePage>{
     TextEditingController searchController = TextEditingController();
     bool tittleAppBar = false;
     List<Deal> newDealList = List.from(deals);
-    onItemSearch(String value) {
+    TextEditingController titleDeal = TextEditingController();
+    TextEditingController descriptionDeal = TextEditingController();
+    TextEditingController imgUrl = TextEditingController();
+  onItemSearch(String value) {
+    if (selectedIndex == 0){
     setState(
       () {
         newDealList = deals
@@ -26,6 +32,7 @@ class StateHomePage extends State<HomePage>{
             .toList();
       }
     );
+    }
 }
 
   @override
@@ -38,7 +45,7 @@ class StateHomePage extends State<HomePage>{
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
                 side: const BorderSide(
-                  color: Colors.yellow,
+                  color: Colors.black,
                 ),
               ),
               child: ListTile(
@@ -65,12 +72,13 @@ class StateHomePage extends State<HomePage>{
 
     final list = [
       listSearchWidget(context), // 0
-      const Calendar(), // 1
-      const pr3Widget(),
+      // const Calendar(), // 1
+      const db(),
+      const pr3Widget(), //2
     ];
     AppBar appBarSearch = AppBar(
       centerTitle: true,
-      backgroundColor: Colors.orange,
+      backgroundColor: Colors.amber,
       title: TextField(
         style: TextStyle(color: Colors.white),
         autofocus: true,
@@ -86,6 +94,7 @@ class StateHomePage extends State<HomePage>{
               setState(() {
                 searchController.clear();
                 tittleAppBar = false;
+                newDealList = deals;
               });
             },
             icon: const Icon(Icons.close))
@@ -95,8 +104,9 @@ class StateHomePage extends State<HomePage>{
     AppBar appBar = AppBar(
       title: Text(title),
       centerTitle: true,
-      backgroundColor: Colors.orange,
+      backgroundColor: Colors.amber,
       actions: [
+        if (selectedIndex == 0 || selectedIndex == 1)
         IconButton(
             onPressed: () {
               setState(() {
@@ -108,13 +118,118 @@ class StateHomePage extends State<HomePage>{
     );
     return Scaffold(
         backgroundColor: Colors.white,
-        appBar: tittleAppBar ? appBarSearch : appBar,
-        body: Center(
-          child: list.elementAt(selectedIndex),
+        appBar: selectedIndex != 1 ? (tittleAppBar && selectedIndex == 0 ? appBarSearch : appBar) : null,
+        body: list.elementAt(selectedIndex),
+        // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: selectedIndex == 0 ? FloatingActionButton(
+          child: Icon(Icons.add),
+          onPressed: () => showDialog(
+            context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: const Text('Добавить дело'),
+          content: Container(
+            height: 120,
+            child: Column(
+              children: [
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: "Заголовок",
+                    ),
+                  controller: titleDeal,
+                ),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: "Описание",
+                  ),
+                  controller: descriptionDeal,
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'Cancel'),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () { 
+                deals.add(new Deal(
+                  id: deals.length + 1,
+                  title: titleDeal.text,
+                  discription: descriptionDeal.text,
+                ));
+                titleDeal.text = "";
+                descriptionDeal.text = "";
+                setState(() {
+                  newDealList = deals;
+                });
+                Navigator.pop(context, 'OK');
+                },
+              child: const Text('OK'),
+            ),
+          ],
         ),
-      drawer: MenuDrawer(),
+          ),
+          ) : selectedIndex == 1 ? FloatingActionButton(
+            child: Icon(Icons.add),
+            onPressed: () => showDialog(
+              context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: const Text('Добавить дела'),
+          content: Container(
+            height: 180,
+            child: Column(
+              children: [
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: "Заголовок",
+                    ),
+                  controller: titleDeal,
+                ),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: "Описание",
+                  ),
+                  controller: descriptionDeal,
+                ),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: "Ссылка на картинку",
+                  ),
+                  controller: imgUrl,
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'Cancel'),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () { 
+                CollectionReference dealsDB = FirebaseFirestore.instance.collection('deal');
+                 dealsDB.add(
+                  {
+                    'title': titleDeal.text.toString(),
+                    'discription': descriptionDeal.text.toString(),
+                    'img': imgUrl.text.toString(),
+                  },
+                );
+                titleDeal.clear();
+                descriptionDeal.clear();
+                imgUrl.clear();
+                Navigator.pop(context, 'OK');
+                },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+            ),
+          ) : null,
+      drawer: const MenuDrawer(),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.orange,
+        backgroundColor: Colors.amber,
         selectedItemColor: Colors.white,
         currentIndex: selectedIndex,
         items: const [
@@ -127,12 +242,12 @@ class StateHomePage extends State<HomePage>{
               icon: Icon(
                 Icons.calendar_today,
               ),
-              label: "Календарь"),
-              BottomNavigationBarItem(
-              icon: Icon(
-                Icons.calendar_today,
-              ),
-              label: "PR3")
+              label: "Firebase"),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.alt_route_outlined,
+            ),
+            label: "Практика")
         ],
         onTap: (value) {
           setState(
@@ -140,13 +255,13 @@ class StateHomePage extends State<HomePage>{
               selectedIndex = value;
               if (selectedIndex == 0) {
                 title = 'Список дел';
-              } 
-              else if (selectedIndex == 1){
-                title = 'PR3';
-              }
-              else {
-                title = 'Календарь';
+              } else if (selectedIndex == 1) {
+                title = 'Firebase';
+                
                 //tittleAppBar = false;
+              }
+              else if(selectedIndex == 2) {
+                title = "Практика";
               }
             },
           );

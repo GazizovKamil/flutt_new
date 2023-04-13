@@ -34,4 +34,8 @@ class DBConnection{
   Future logOut()async{
       await _firebaseAuth.signOut();
   }
+
+  Stream<UserModel?> get currentUser {
+    return _firebaseAuth.authStateChanges().map((User? user)=>user!=null ? UserModel.fromFirebase(user) : null);
+  }
 }
